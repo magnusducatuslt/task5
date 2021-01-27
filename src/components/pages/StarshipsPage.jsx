@@ -1,23 +1,36 @@
-import React, { useState } from "react";
-import { Table, Delete, Form, Submit, Input } from "../common";
-import Faker from "faker";
+import React from "react";
+import { Table, ButtonDelete, ButtonCreate } from "../common";
+import { useHistory } from "react-router-dom";
+
+import {
+  returnMeNewArrayWithOutParams,
+  returnMeCreatedObjectFromArrayWithoutParams,
+} from "@utills";
 
 export const StarshipsPage = ({ initialState, setNewState }) => {
-  const [name, setName] = useState("");
-  const [speed, setSpeed] = useState(0);
-  const [owner, setOwner] = useState("");
-  function deleteLine(index) {
-    initialState.splice(index, 1);
-    setNewState([...initialState]);
-  }
+  const history = useHistory();
+  const heads = [
+    "Ships",
+    "name",
+    "model",
+    "manufacturer",
+    "cost_in_credits",
+    "length",
+    "crew",
+    "starship_class",
+    "action",
+  ];
   const ships = initialState.map((ship, index) => ({
-    index: index + 1,
+    count: index + 1,
     name: ship.name,
-    speed: ship.speed,
-    owner: ship.owner,
-    id: ship.id,
+    model: ship.model,
+    manufacturer: ship.manufacturer,
+    cost_in_credits: ship.cost_in_credits,
+    length: ship.length,
+    crew: ship.crew,
+    starship_class: ship.starship_class,
     action: (
-      <Delete
+      <ButtonDelete
         action={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -27,6 +40,44 @@ export const StarshipsPage = ({ initialState, setNewState }) => {
       />
     ),
   }));
+  function deleteLine(index) {
+    initialState.splice(index, 1);
+    localStorage.setItem("starships", JSON.stringify([...initialState]));
+    setNewState([...initialState]);
+  }
+  function handleClickOnTable({ value }) {
+    history.push({
+      pathname: "/form",
+      state: {
+        value,
+        inputs: returnMeNewArrayWithOutParams({
+          arr: heads,
+          excluders: ["action", "Ships", "name", "count"],
+        }),
+        targetState: "starships",
+        intention: "update",
+      },
+    });
+  }
+  function handleCreateRecord(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    history.push({
+      pathname: "/form",
+      state: {
+        value: returnMeCreatedObjectFromArrayWithoutParams({
+          arr: heads,
+          excluders: ["action", "Ships"],
+        }),
+        inputs: returnMeNewArrayWithOutParams({
+          arr: heads,
+          excluders: ["action", "Ships"],
+        }),
+        targetState: "starships",
+        intention: "create",
+      },
+    });
+  }
   return (
     <div>
       <div>
@@ -35,7 +86,9 @@ export const StarshipsPage = ({ initialState, setNewState }) => {
       {ships.length > 0 ? (
         <Table
           body={ships}
-          heads={["Ships", "name", "speed", "owner", "id", "action"]}
+          heads={heads}
+          clickOnTable={handleClickOnTable}
+          excluders={["action", "count", "Ships"]}
         />
       ) : (
         <div>
@@ -43,53 +96,8 @@ export const StarshipsPage = ({ initialState, setNewState }) => {
         </div>
       )}
       <br />
-      <Form
-        submit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setNewState([
-            ...initialState,
-            {
-              id: Faker.random.uuid(),
-              name,
-              speed,
-              owner,
-            },
-          ]);
-        }}
-        inputs={[
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setName(e.target.value);
-            },
-            type: "text",
-            value: name,
-            name: "name",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setSpeed(e.target.value);
-            },
-            type: "number",
-            value: speed,
-            name: "speed",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setOwner(e.target.value);
-            },
-            type: "text",
-            value: owner,
-            name: "owner",
-          },
-        ]}
-      ></Form>
+      <br />
+      <ButtonCreate onClick={handleCreateRecord} text={`Create Planet`} />
     </div>
   );
 };

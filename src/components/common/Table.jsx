@@ -7,7 +7,8 @@ import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
 import { returnMeNewObjectWithOutParams } from "@utills";
-export const Table = ({ body, heads, clickOnTable }) => {
+
+export const Table = ({ body, heads, clickOnTable, excluders }) => {
   return (
     <TableContainer component={Paper}>
       <TableEntity aria-label=" table">
@@ -24,7 +25,7 @@ export const Table = ({ body, heads, clickOnTable }) => {
                 style={{ color: "white !important" }}
                 key={`${Date.now()}/${index}`}
               >
-                {head}
+                {head.name}
               </TableCell>
             ))}
           </TableRow>
@@ -36,12 +37,12 @@ export const Table = ({ body, heads, clickOnTable }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                clickOnTable(
-                  returnMeNewObjectWithOutParams(
-                    elem,
-                    new Map([["action", ""]])
-                  )
-                );
+                clickOnTable({
+                  value: returnMeNewObjectWithOutParams({
+                    obj: elem,
+                    excluders,
+                  }),
+                });
               }}
             >
               {Object.keys(elem).map((elemIndex, subIndex) => (

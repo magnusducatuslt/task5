@@ -1,30 +1,26 @@
 import React, { useState } from "react";
-import { Table, Delete, Form } from "../common";
-import Faker from "faker";
+import { Table, ButtonDelete, ButtonCreate } from "../common";
+import { useHistory } from "react-router-dom";
+import {
+  returnMeNewArrayWithOutParams,
+  returnMeCreatedObjectFromArrayWithoutParams,
+} from "@utills";
 
 export const PlanetsPage = ({ initialState, setNewState }) => {
-  const [name, setName] = useState("");
-  const [climate, setClimate] = useState("");
-  const [terrain, setTerrain] = useState("");
-  const [diametr, setDiametr] = useState("");
-  const [population, setPopulation] = useState(0);
-  const [created, setCreated] = useState("");
-  function deleteLine(index) {
-    initialState.splice(index, 1);
-    setNewState([...initialState]);
-  }
-
+  const history = useHistory();
   const planets = initialState.map((planet, index) => ({
-    index: index + 1,
+    count: index + 1,
     name: planet.name,
     climate: planet.climate,
     terrain: planet.terrain,
-    diametr: planet.diametr,
+    rotation_period: planet.rotation_period,
+    orbital_period: planet.orbital_period,
+    gravity: planet.gravity,
+    surface_water: planet.surface_water,
     population: planet.population,
     created: planet.created,
-    id: planet.id,
     action: (
-      <Delete
+      <ButtonDelete
         action={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -34,6 +30,57 @@ export const PlanetsPage = ({ initialState, setNewState }) => {
       />
     ),
   }));
+  const heads = [
+    "Planets",
+    "name",
+    "climate",
+    "terrain",
+    "rotation_period",
+    "orbital_period",
+    "gravity",
+    "surface_water",
+    "population",
+    "created",
+    "action",
+  ];
+  function deleteLine(index) {
+    initialState.splice(index, 1);
+    localStorage.setItem("planets", JSON.stringify([...initialState]));
+    setNewState([...initialState]);
+  }
+  function handleClickOnTable({ value }) {
+    history.push({
+      pathname: "/form",
+      state: {
+        value,
+        inputs: returnMeNewArrayWithOutParams({
+          arr: heads,
+          excluders: ["action", "Planets", "count", "name"],
+        }),
+        targetState: "planets",
+        intention: "update",
+      },
+    });
+  }
+  function handleCreateRecord(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    history.push({
+      pathname: "/form",
+      state: {
+        value: returnMeCreatedObjectFromArrayWithoutParams({
+          arr: heads,
+          excluders: ["action", "Planets"],
+        }),
+        inputs: returnMeNewArrayWithOutParams({
+          arr: heads,
+          excluders: ["action", "Planets"],
+        }),
+        targetState: "planets",
+        intention: "create",
+      },
+    });
+  }
   return (
     <div>
       <div>
@@ -42,17 +89,9 @@ export const PlanetsPage = ({ initialState, setNewState }) => {
       {planets.length > 0 ? (
         <Table
           body={planets}
-          heads={[
-            "Planets",
-            "name",
-            "climate",
-            "terrain",
-            "diametr",
-            "population",
-            "created",
-            "id",
-            "action",
-          ]}
+          heads={heads}
+          clickOnTable={handleClickOnTable}
+          excluders={["action", "count", "Planets"]}
         />
       ) : (
         <div>
@@ -60,86 +99,8 @@ export const PlanetsPage = ({ initialState, setNewState }) => {
         </div>
       )}
       <br />
-      <Form
-        submit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setNewState([
-            ...initialState,
-            {
-              id: Faker.random.uuid(),
-              name,
-              climate,
-              terrain,
-              diametr,
-              population,
-              created,
-            },
-          ]);
-        }}
-        inputs={[
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setName(e.target.value);
-            },
-            type: "text",
-            value: name,
-            name: "name",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setClimate(e.target.value);
-            },
-            type: "text",
-            value: climate,
-            name: "climate",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setTerrain(e.target.value);
-            },
-            type: "text",
-            value: terrain,
-            name: "terrain",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setDiametr(e.target.value);
-            },
-            type: "text",
-            value: diametr,
-            name: "diametr",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setPopulation(e.target.value);
-            },
-            type: "number",
-            value: population,
-            name: "population",
-          },
-          {
-            onChange: (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setCreated(e.target.value);
-            },
-            type: "text",
-            value: created,
-            name: "created",
-          },
-        ]}
-      ></Form>
+      <br />
+      <ButtonCreate onClick={handleCreateRecord} text={`Create Planet`} />
     </div>
   );
 };
